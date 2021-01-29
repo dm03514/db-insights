@@ -1,0 +1,22 @@
+name: Run Tests Required For Merge
+on: [push]
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.4' # The Go version to download (if necessary) and use.
+      - run: go version
+
+      - name: Fmt
+        run: make fmt
+
+      - name: Unit tests
+        run: make test-unit
+
+      - name: Build
+        run: make build
