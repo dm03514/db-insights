@@ -1,0 +1,10 @@
+SELECT sti.schema, sti.table, inserts.last_insert, inserts.rows
+FROM
+    (SELECT MAX(query) as query, tbl, MAX(i.endtime) as last_insert, MAX(rows) as rows
+    FROM stl_insert i
+    GROUP BY tbl
+    ORDER BY tbl) inserts
+JOIN svv_table_info sti ON sti.table_id = inserts.tbl
+WHERE inserts.last_insert >= ?
+AND sti.schema IN (?)
+ORDER BY inserts.last_insert DESC;
