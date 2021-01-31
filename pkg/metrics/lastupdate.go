@@ -18,7 +18,7 @@ type TableAccess struct {
 type Accessor interface {
 	// In the future this should be a cursor or generator
 	// pull everything into memory for right now for simplicity
-	TableAccesses(ctx context.Context, schemas []string) ([]TableAccess, error)
+	TableAccesses(ctx context.Context) ([]TableAccess, error)
 }
 
 type LastAccessorWorker struct {
@@ -38,7 +38,7 @@ func (l *LastAccessorWorker) Loop(ctx context.Context) {
 	defer ticker.Stop()
 
 	// do the initial collect
-	tas, err := l.Accessor.TableAccesses(ctx, l.StaticConf.LastUpdates.Schemas)
+	tas, err := l.Accessor.TableAccesses(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +53,7 @@ func (l *LastAccessorWorker) Loop(ctx context.Context) {
 			return
 		case <-ticker.C:
 			log.Debugf("lastupdate.Loop getting accesses")
-			tas, err := l.Accessor.TableAccesses(ctx, l.StaticConf.LastUpdates.Schemas)
+			tas, err := l.Accessor.TableAccesses(ctx)
 			if err != nil {
 				panic(err)
 			}

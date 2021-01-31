@@ -13,7 +13,7 @@ import (
 )
 
 type DB interface {
-	TableAccesses(ctx context.Context, schemas []string) ([]metrics.TableAccess, error)
+	TableAccesses(ctx context.Context) ([]metrics.TableAccess, error)
 }
 
 type Conf struct {

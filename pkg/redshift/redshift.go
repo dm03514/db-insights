@@ -1,12 +1,13 @@
 package redshift
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"github.com/dm03514/db-insights/pkg/metrics"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
+	"text/template"
 	"time"
 )
 
@@ -18,21 +19,29 @@ func (r *Redshift) Close() error {
 	return r.DB.Close()
 }
 
-func (r *Redshift) TableAccesses(ctx context.Context, schemas []string) ([]metrics.TableAccess, error) {
+type LastAccessContext struct {
+	FromTime string
+}
+
+func (r *Redshift) TableAccesses(ctx context.Context) ([]metrics.TableAccess, error) {
 	now := time.Now()
 	ago := now.Add(time.Duration(-3) * time.Hour)
-	fromTime := ago.Format("2006-01-02 15:04:05")
 
-	// pwd, _ := os.Getwd()
-	bs, err := ioutil.ReadFile( "pkg/redshift/sql/lastupdates.sql")
-	// t, err := template.ParseFiles("pkg/redshift/sql/lastupdates.sql")
-	if err != nil {
-		return nil, err
+	tmplContext := LastAccessContext{
+		FromTime: ago.Format("2006-01-02 15:04:05"),
 	}
 
-	log.Debugf("Executing sql: %q", string(bs))
+	t, err := template.ParseFiles("pkg/redshift/sql/lastupdates.gotmpl")
+	if err != nil {
+	}
 
-	rows, err := r.DB.QueryContext(ctx, string(bs), fromTime, schemas)
+	var buf bytes.Buffer
+
+	t.Execute(&buf, &tmplContext)
+
+	log.Debugf("Executing sql: %q", buf.String())
+
+	rows, err := r.DB.QueryContext(ctx, buf.String())
 	if err != nil {
 		return nil, err
 	}

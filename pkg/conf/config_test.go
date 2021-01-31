@@ -3,6 +3,7 @@ package conf
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestNewFromYaml_LastUpdatesDefaults(t *testing.T) {
@@ -11,8 +12,10 @@ func TestNewFromYaml_LastUpdatesDefaults(t *testing.T) {
 	assert.Equal(t, &StaticConf{
 		LastUpdates: struct {
 			Schemas []string
+			Since   time.Duration
 		}{
 			Schemas: []string{"public"},
+			Since:   time.Duration(-6 * time.Hour),
 		},
 	}, c)
 }

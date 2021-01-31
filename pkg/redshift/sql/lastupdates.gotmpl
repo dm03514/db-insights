@@ -5,6 +5,5 @@ FROM
     GROUP BY tbl
     ORDER BY tbl) inserts
 JOIN svv_table_info sti ON sti.table_id = inserts.tbl
-WHERE inserts.last_insert >= ?
-AND sti.schema IN (?)
+WHERE inserts.last_insert >= '{{.FromTime}}'
 ORDER BY inserts.last_insert DESC;
