@@ -50,6 +50,7 @@ func main() {
 			if err != nil {
 				return err
 			}
+			defer ms.Close()
 
 			rs, err := redshift.New(c.String("redshift-connection-string"))
 			if err != nil {

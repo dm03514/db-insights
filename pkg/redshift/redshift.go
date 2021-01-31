@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"github.com/dm03514/db-insights/pkg/conf"
 	"github.com/dm03514/db-insights/pkg/metrics"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
@@ -23,9 +24,9 @@ type LastAccessContext struct {
 	FromTime string
 }
 
-func (r *Redshift) TableAccesses(ctx context.Context) ([]metrics.TableAccess, error) {
-	now := time.Now()
-	ago := now.Add(time.Duration(-3) * time.Hour)
+func (r *Redshift) TableAccesses(ctx context.Context, conf *conf.LastUpdateConf) ([]metrics.TableAccess, error) {
+	now := time.Now().UTC()
+	ago := now.Add(conf.Since)
 
 	tmplContext := LastAccessContext{
 		FromTime: ago.Format("2006-01-02 15:04:05"),
