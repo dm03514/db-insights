@@ -12,7 +12,11 @@ func TestNewFromYaml_LastUpdatesDefaults(t *testing.T) {
 	assert.Equal(t, &StaticConf{
 		LastUpdates: &LastUpdateConf{
 			Schemas: []string{"public"},
-			Since:   time.Duration(-6 * time.Hour),
+			Since:   time.Duration(-2 * time.Hour),
 		},
 	}, c)
+}
+
+func TestLastUpdateConf_SchemasMap(t *testing.T) {
+	t.Fail()
 }

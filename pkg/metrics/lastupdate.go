@@ -22,45 +22,78 @@ type Accessor interface {
 	TableAccesses(ctx context.Context, conf *conf.LastUpdateConf) ([]TableAccess, error)
 }
 
+type tagger struct{}
+
+func (t tagger) AdditionalTags(ta TableAccess) []string {
+	return nil
+}
+
+func NewLastAccessWorker(ms statsd.ClientInterface, cd time.Duration, sc *conf.StaticConf, accessor Accessor) (*LastAccessorWorker, error) {
+	t := tagger{}
+
+	return &LastAccessorWorker{
+		Metrics:            ms,
+		CollectionDuration: cd,
+		StaticConf:         sc,
+		Accessor:           accessor,
+		tagger:             t,
+	}, nil
+}
+
 type LastAccessorWorker struct {
 	Metrics            statsd.ClientInterface
 	CollectionDuration time.Duration
 	StaticConf         *conf.StaticConf
 	Accessor           Accessor
+	tagger             tagger
 }
 
-func (l *LastAccessorWorker) Emit(ta TableAccess) (bool, error) {
+func (l *LastAccessorWorker) Emit(ta TableAccess, sm map[string]struct{}) (bool, error) {
 	// check if the table access matches
+	// this will eventually become a query predicate.
+	if _, ok := sm[ta.Schema]; !ok {
+		return false, nil
+	}
 
 	// if it does match calculate any additional tags
-
 	tags := []string{
 		fmt.Sprintf("schema:%s", ta.Schema),
 		fmt.Sprintf("table:%s", ta.Table),
 	}
 
-	diff := time.Now().UTC().Sub(time.Now().UTC())
+	additionalTags := l.tagger.AdditionalTags(ta)
+	if additionalTags != nil {
+		for _, t := range additionalTags {
+			tags = append(tags, t)
+		}
+	}
+
+	diff := time.Now().UTC().Sub(ta.LastInsert)
 
 	l.Metrics.Histogram(
-		"dbinsights.lastupdates.table.total_seconds",
+		"dbinsights.lastupdater.table.total_seconds",
 		diff.Seconds(),
 		tags,
 		1,
 	)
 	l.Metrics.Histogram(
-		"dbinsights.lastupdates.table.rows",
+		"dbinsights.lastupdater.table.rows",
 		float64(ta.Rows),
 		tags,
 		1,
 	)
+
+	log.Debugf("lastupdater table: %q.%q, rows: %d, duration: %s",
+		ta.Schema, ta.Table, ta.Rows, diff)
 
 	return true, nil
 }
 
 func (l *LastAccessorWorker) EmitAll(tas []TableAccess) error {
 	log.Debugf("Lastupdate received %d metrics", len(tas))
+	sm := l.StaticConf.LastUpdates.SchemasMap()
 	for _, ta := range tas {
-		if _, err := l.Emit(ta); err != nil {
+		if _, err := l.Emit(ta, sm); err != nil {
 			return err
 		}
 	}
@@ -83,10 +116,10 @@ func (l *LastAccessorWorker) Loop(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Debugf("lastupdate.Loop ctx.Done()")
+			log.Debugf("lastupdater.Loop ctx.Done()")
 			return
 		case <-ticker.C:
-			log.Debugf("lastupdate.Loop getting accesses")
+			log.Debugf("lastupdater.Loop getting accesses")
 			tas, err := l.Accessor.TableAccesses(ctx, l.StaticConf.LastUpdates)
 			if err != nil {
 				panic(err)

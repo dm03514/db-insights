@@ -7,7 +7,15 @@ import (
 
 type LastUpdateConf struct {
 	Schemas []string
-	Since   time.Duration
+	Since   time.Duration // default "public"
+}
+
+func (l LastUpdateConf) SchemasMap() map[string]struct{} {
+	m := make(map[string]struct{})
+	for _, s := range l.Schemas {
+		m[s] = struct{}{}
+	}
+	return m
 }
 
 type StaticConf struct {
@@ -24,7 +32,7 @@ func (c *StaticConf) SetDefaults() {
 	}
 
 	if c.LastUpdates.Since.Seconds() == 0 {
-		c.LastUpdates.Since = time.Duration(-6 * time.Hour)
+		c.LastUpdates.Since = time.Duration(-2 * time.Hour)
 	}
 }
 

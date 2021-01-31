@@ -32,11 +32,14 @@ func (s *Service) Run() error {
 
 	// Assuming a single db for right now
 
-	accessWorker := metrics.LastAccessorWorker{
-		Metrics:            s.Conf.Metrics,
-		CollectionDuration: 1 * time.Hour,
-		Accessor:           s.Conf.DBs[0],
-		StaticConf:         s.StaticConf,
+	accessWorker, err := metrics.NewLastAccessWorker(
+		s.Conf.Metrics,
+		1*time.Hour,
+		s.StaticConf,
+		s.Conf.DBs[0],
+	)
+	if err != nil {
+		return err
 	}
 
 	go accessWorker.Loop(ctx)
