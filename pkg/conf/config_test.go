@@ -10,10 +10,7 @@ func TestNewFromYaml_LastUpdatesDefaults(t *testing.T) {
 	c, err := NewFromYaml([]byte(``))
 	assert.NoError(t, err)
 	assert.Equal(t, &StaticConf{
-		LastUpdates: struct {
-			Schemas []string
-			Since   time.Duration
-		}{
+		LastUpdates: &LastUpdateConf{
 			Schemas: []string{"public"},
 			Since:   time.Duration(-6 * time.Hour),
 		},

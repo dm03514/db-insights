@@ -5,14 +5,20 @@ import (
 	"time"
 )
 
+type LastUpdateConf struct {
+	Schemas []string
+	Since   time.Duration
+}
+
 type StaticConf struct {
-	LastUpdates struct {
-		Schemas []string
-		Since   time.Duration
-	}
+	LastUpdates *LastUpdateConf
 }
 
 func (c *StaticConf) SetDefaults() {
+	if c.LastUpdates == nil {
+		c.LastUpdates = &LastUpdateConf{}
+	}
+
 	if len(c.LastUpdates.Schemas) == 0 {
 		c.LastUpdates.Schemas = []string{"public"}
 	}
