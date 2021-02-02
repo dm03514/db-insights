@@ -33,24 +33,22 @@ func newTagger(ms []conf.LastUpdateTagMappings) (tagger, error) {
 	}, nil
 }
 
-// IsMatch returns the first match
-func (t tagger) IsMatch(s string) bool {
+func (t tagger) AdditionalTags(s string) []string {
+	var tags []string
 	for _, m := range t.Mappings {
 		switch m.MatchType {
 		case conf.IsPrefixMatchType:
-			return strings.HasPrefix(s, m.Target)
+			if strings.HasPrefix(s, m.Target) {
+				tags = append(tags, m.Tag)
+			}
 		case conf.IsExactMatchType:
-			return s == m.Target
+			if s == m.Target {
+				tags = append(tags, m.Tag)
+			}
 		}
-
-		return false
 	}
 
-	return false
-}
-
-func (t tagger) AdditionalTags(ta TableAccess) []string {
-	return nil
+	return tags
 }
 
 func NewLastAccessor(ms statsd.ClientInterface, sc *conf.StaticConf, accessor Accessor) (*LastAccessor, error) {
@@ -88,12 +86,14 @@ func (l *LastAccessor) Emit(ta TableAccess, sm map[string]struct{}) (bool, error
 		fmt.Sprintf("table:%s", ta.Table),
 	}
 
-	additionalTags := l.tagger.AdditionalTags(ta)
-	if additionalTags != nil {
-		for _, t := range additionalTags {
-			tags = append(tags, t)
+	/*
+		additionalTags := l.tagger.AdditionalTags(ta.Table)
+		if additionalTags != nil {
+			for _, t := range additionalTags {
+				tags = append(tags, t)
+			}
 		}
-	}
+	*/
 
 	diff := time.Now().UTC().Sub(ta.LastInsert)
 
@@ -128,6 +128,8 @@ func (l *LastAccessor) EmitAll(tas []TableAccess) error {
 }
 
 func (l *LastAccessor) QueryAccesses(ctx context.Context) error {
+	// TODO - add "service" metrics to help in operating db-insights
+
 	// do the initial collect
 	tas, err := l.Accessor.TableAccesses(ctx, l.StaticConf.LastUpdates)
 	if err != nil {
