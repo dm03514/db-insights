@@ -5,11 +5,11 @@ import (
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/dm03514/db-insights/pkg/conf"
 	"github.com/dm03514/db-insights/pkg/metrics"
+	"github.com/robfig/cron/v3"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 type DB interface {
@@ -32,9 +32,8 @@ func (s *Service) Run() error {
 
 	// Assuming a single db for right now
 
-	accessWorker, err := metrics.NewLastAccessWorker(
+	accessWorker, err := metrics.NewLastAccessor(
 		s.Conf.Metrics,
-		1*time.Hour,
 		s.StaticConf,
 		s.Conf.DBs[0],
 	)
@@ -42,7 +41,12 @@ func (s *Service) Run() error {
 		return err
 	}
 
-	go accessWorker.Loop(ctx)
+	c := cron.New()
+	c.AddFunc("@hourly", func() {
+		if err := accessWorker.QueryAccesses(ctx); err != nil {
+			log.Error(err)
+		}
+	})
 
 	interruptChan := make(chan os.Signal, 1)
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

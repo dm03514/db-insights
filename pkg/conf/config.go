@@ -5,9 +5,23 @@ import (
 	"time"
 )
 
+type LastUpdateMatch string
+
+const (
+	IsPrefixMatchType LastUpdateMatch = "is_prefix"
+	IsExactMatchType  LastUpdateMatch = "is_exact"
+)
+
+type LastUpdateTagMappings struct {
+	Target    string
+	MatchType LastUpdateMatch
+	Tag       string
+}
+
 type LastUpdateConf struct {
-	Schemas []string
-	Since   time.Duration // default "public"
+	Schemas     []string
+	Since       time.Duration // default "public"
+	TagMappings []LastUpdateTagMappings
 }
 
 func (l LastUpdateConf) SchemasMap() map[string]struct{} {

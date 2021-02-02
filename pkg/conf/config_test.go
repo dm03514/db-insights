@@ -17,6 +17,19 @@ func TestNewFromYaml_LastUpdatesDefaults(t *testing.T) {
 	}, c)
 }
 
-func TestLastUpdateConf_SchemasMap(t *testing.T) {
-	t.Fail()
+func TestLastUpdateConf_SchemasMap_Empty(t *testing.T) {
+	l := LastUpdateConf{}
+	sm := l.SchemasMap()
+	assert.Equal(t, sm, map[string]struct{}{})
+}
+
+func TestLastUpdateConf_SchemasMap_Schemas(t *testing.T) {
+	l := LastUpdateConf{
+		Schemas: []string{"public", "stage"},
+	}
+	sm := l.SchemasMap()
+	assert.Equal(t, sm, map[string]struct{}{
+		"public": {},
+		"stage":  {},
+	})
 }

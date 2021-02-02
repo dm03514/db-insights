@@ -6,6 +6,7 @@ import (
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/dm03514/db-insights/pkg/conf"
 	log "github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -22,33 +23,59 @@ type Accessor interface {
 	TableAccesses(ctx context.Context, conf *conf.LastUpdateConf) ([]TableAccess, error)
 }
 
-type tagger struct{}
+type tagger struct {
+	Mappings []conf.LastUpdateTagMappings
+}
+
+func newTagger(ms []conf.LastUpdateTagMappings) (tagger, error) {
+	return tagger{
+		Mappings: ms,
+	}, nil
+}
+
+// IsMatch returns the first match
+func (t tagger) IsMatch(s string) bool {
+	for _, m := range t.Mappings {
+		switch m.MatchType {
+		case conf.IsPrefixMatchType:
+			return strings.HasPrefix(s, m.Target)
+		case conf.IsExactMatchType:
+			return s == m.Target
+		}
+
+		return false
+	}
+
+	return false
+}
 
 func (t tagger) AdditionalTags(ta TableAccess) []string {
 	return nil
 }
 
-func NewLastAccessWorker(ms statsd.ClientInterface, cd time.Duration, sc *conf.StaticConf, accessor Accessor) (*LastAccessorWorker, error) {
-	t := tagger{}
+func NewLastAccessor(ms statsd.ClientInterface, sc *conf.StaticConf, accessor Accessor) (*LastAccessor, error) {
 
-	return &LastAccessorWorker{
-		Metrics:            ms,
-		CollectionDuration: cd,
-		StaticConf:         sc,
-		Accessor:           accessor,
-		tagger:             t,
+	t, err := newTagger(sc.LastUpdates.TagMappings)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LastAccessor{
+		Metrics:    ms,
+		StaticConf: sc,
+		Accessor:   accessor,
+		tagger:     t,
 	}, nil
 }
 
-type LastAccessorWorker struct {
-	Metrics            statsd.ClientInterface
-	CollectionDuration time.Duration
-	StaticConf         *conf.StaticConf
-	Accessor           Accessor
-	tagger             tagger
+type LastAccessor struct {
+	Metrics    statsd.ClientInterface
+	StaticConf *conf.StaticConf
+	Accessor   Accessor
+	tagger     tagger
 }
 
-func (l *LastAccessorWorker) Emit(ta TableAccess, sm map[string]struct{}) (bool, error) {
+func (l *LastAccessor) Emit(ta TableAccess, sm map[string]struct{}) (bool, error) {
 	// check if the table access matches
 	// this will eventually become a query predicate.
 	if _, ok := sm[ta.Schema]; !ok {
@@ -89,7 +116,7 @@ func (l *LastAccessorWorker) Emit(ta TableAccess, sm map[string]struct{}) (bool,
 	return true, nil
 }
 
-func (l *LastAccessorWorker) EmitAll(tas []TableAccess) error {
+func (l *LastAccessor) EmitAll(tas []TableAccess) error {
 	log.Debugf("Lastupdate received %d metrics", len(tas))
 	sm := l.StaticConf.LastUpdates.SchemasMap()
 	for _, ta := range tas {
@@ -100,33 +127,15 @@ func (l *LastAccessorWorker) EmitAll(tas []TableAccess) error {
 	return nil
 }
 
-func (l *LastAccessorWorker) Loop(ctx context.Context) {
-	ticker := time.NewTicker(l.CollectionDuration)
-	defer ticker.Stop()
-
+func (l *LastAccessor) QueryAccesses(ctx context.Context) error {
 	// do the initial collect
 	tas, err := l.Accessor.TableAccesses(ctx, l.StaticConf.LastUpdates)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if err := l.EmitAll(tas); err != nil {
-		panic(err)
+		return err
 	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			log.Debugf("lastupdater.Loop ctx.Done()")
-			return
-		case <-ticker.C:
-			log.Debugf("lastupdater.Loop getting accesses")
-			tas, err := l.Accessor.TableAccesses(ctx, l.StaticConf.LastUpdates)
-			if err != nil {
-				panic(err)
-			}
-			if err := l.EmitAll(tas); err != nil {
-				panic(err)
-			}
-		}
-	}
+	return nil
 }
