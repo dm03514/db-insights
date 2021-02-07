@@ -34,6 +34,7 @@ func (r *Redshift) TableAccesses(ctx context.Context, conf *conf.LastUpdateConf)
 
 	t, err := template.ParseFiles("pkg/redshift/sql/lastupdates.gotmpl")
 	if err != nil {
+		return nil, err
 	}
 
 	var buf bytes.Buffer

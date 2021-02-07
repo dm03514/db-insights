@@ -14,16 +14,38 @@ import (
 
 type DB interface {
 	TableAccesses(ctx context.Context, conf *conf.LastUpdateConf) ([]metrics.TableAccess, error)
+	Freshness(ctx context.Context, conf *conf.FreshnessConf) ([]metrics.TableFreshness, error)
+	Close() error
 }
 
 type Conf struct {
 	Metrics statsd.ClientInterface
-	DBs     []DB
+	DB      DB
 }
 
 type Service struct {
 	Conf       Conf
 	StaticConf *conf.StaticConf
+}
+
+func (s *Service) Close() error {
+	return s.Conf.DB.Close()
+}
+
+func (s *Service) CheckFreshness() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	f, err := metrics.NewFreshnessChecker(
+		s.Conf.Metrics,
+		s.StaticConf,
+		s.Conf.DB,
+	)
+	if err != nil {
+		return err
+	}
+
+	return f.Run(ctx)
 }
 
 func (s *Service) Run() error {
@@ -35,7 +57,7 @@ func (s *Service) Run() error {
 	accessWorker, err := metrics.NewLastAccessor(
 		s.Conf.Metrics,
 		s.StaticConf,
-		s.Conf.DBs[0],
+		s.Conf.DB,
 	)
 	if err != nil {
 		return err
