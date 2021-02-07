@@ -8,6 +8,7 @@ import (
 	"github.com/dm03514/db-insights/pkg/snowflake"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"io/ioutil"
 	"os"
 )
 
@@ -54,7 +55,12 @@ func newService(c *cli.Context) (*service.Service, error) {
 		return nil, err
 	}
 
-	staticConf, err := conf.NewFromYaml([]byte(``))
+	data, err := ioutil.ReadFile(c.String("conf"))
+	if err != nil {
+		return nil, err
+	}
+
+	staticConf, err := conf.NewFromYaml(data)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +94,11 @@ func main() {
 				Name:  "db",
 				Value: "snowflake",
 				Usage: "The concrete database to use: snowflake",
+			},
+			&cli.PathFlag{
+				Name:  "conf",
+				Value: "",
+				Usage: "file path to the configuration file",
 			},
 		},
 		Commands: []*cli.Command{
