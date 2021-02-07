@@ -5,3 +5,34 @@ DB insights is a single deployable binary that you configure to point at 1 or mo
 
 - Last insert / update times on tables
 - Partition Integrity 
+
+
+# Checks
+
+## Freshness
+
+Freshness checks the time of the most recent record within a table.
+
+### Conf
+
+```
+# path/to/your/config.yml
+
+freshness:
+  targets:
+    - database: yourdb 
+      schema: yourschema 
+      table: yourtable 
+      column: yourcolumn 
+
+```
+
+### Execution
+
+```
+# export your connection string
+export DB_INSIGHTS_CONN_STRING="user:pw@ACCOUNT.REGION/DB/?role=ROLE&warehouse=WAREHOUSE"
+
+# invoke the check
+$ go run cmd/dbinsigts/main.go --conf=path/to/your/config.yml check freshness
+```

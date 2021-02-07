@@ -32,7 +32,7 @@ type TableFreshnessCheckerConf struct {
 }
 
 type FreshnessConf struct {
-	Tables []TableFreshnessCheckerConf
+	Targets []TableFreshnessCheckerConf
 }
 
 func (l LastUpdateConf) SchemasMap() map[string]struct{} {

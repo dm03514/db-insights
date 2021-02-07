@@ -21,7 +21,7 @@ func (s *Snowflake) TableAccesses(ctx context.Context, conf *conf.LastUpdateConf
 func (s *Snowflake) Freshness(ctx context.Context, conf *conf.FreshnessConf) ([]metrics.TableFreshness, error) {
 	// for each column target in conf loop through and get results
 	var tfs []metrics.TableFreshness
-	for _, t := range conf.Tables {
+	for _, t := range conf.Targets {
 		sqlStr := fmt.Sprintf(
 			"SELECT max(%s) FROM %s.%s.%s",
 			t.Column,
