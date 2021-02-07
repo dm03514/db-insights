@@ -7,6 +7,7 @@ require (
 	github.com/lib/pq v1.9.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.7.0
+	github.com/snowflakedb/gosnowflake v1.4.0
 	github.com/stretchr/testify v1.2.2
 	github.com/urfave/cli/v2 v2.3.0
 	gopkg.in/yaml.v2 v2.2.3

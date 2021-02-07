@@ -24,6 +24,17 @@ type LastUpdateConf struct {
 	TagMappings []LastUpdateTagMappings
 }
 
+type TableFreshnessCheckerConf struct {
+	Database string
+	Schema   string
+	Table    string
+	Column   string
+}
+
+type FreshnessConf struct {
+	Targets []TableFreshnessCheckerConf
+}
+
 func (l LastUpdateConf) SchemasMap() map[string]struct{} {
 	m := make(map[string]struct{})
 	for _, s := range l.Schemas {
@@ -34,6 +45,7 @@ func (l LastUpdateConf) SchemasMap() map[string]struct{} {
 
 type StaticConf struct {
 	LastUpdates *LastUpdateConf
+	Freshness   *FreshnessConf
 }
 
 func (c *StaticConf) SetDefaults() {
