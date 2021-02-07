@@ -11,6 +11,11 @@ FROM debian:buster-slim
 
 COPY --from=builder /go/bin/dbinsights /usr/local/bin
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates
+
+RUN update-ca-certificates
+
 RUN useradd -m dbi
 USER dbi
 

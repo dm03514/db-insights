@@ -29,6 +29,7 @@ type Service struct {
 }
 
 func (s *Service) Close() error {
+	s.Conf.Metrics.Flush()
 	return s.Conf.DB.Close()
 }
 
