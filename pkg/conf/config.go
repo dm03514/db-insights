@@ -43,9 +43,32 @@ func (l LastUpdateConf) SchemasMap() map[string]struct{} {
 	return m
 }
 
+type ComparisonDB struct {
+	Name                   string
+	Type                   string
+	ConnectionStringEnvVar string `yaml:"connection_string_env_var"`
+}
+
+type ComparisonSQLStatement struct {
+	DB   string
+	SQL  string
+	Name string
+}
+
+type ComparisonTarget struct {
+	Name          string
+	SQLStatements []ComparisonSQLStatement `yaml:"sql_statements"`
+}
+
+type ComparisonsConf struct {
+	DBs     []ComparisonDB
+	Targets []ComparisonTarget
+}
+
 type StaticConf struct {
 	LastUpdates *LastUpdateConf
 	Freshness   *FreshnessConf
+	Comparisons *ComparisonsConf
 }
 
 func (c *StaticConf) SetDefaults() {
