@@ -14,7 +14,15 @@ type Snowflake struct {
 	DB *sql.DB
 }
 
+func (s *Snowflake) SQLDB() *sql.DB {
+	return s.DB
+}
+
 func (s *Snowflake) TableAccesses(ctx context.Context, conf *conf.LastUpdateConf) ([]metrics.TableAccess, error) {
+	return nil, fmt.Errorf("not supported")
+}
+
+func (s *Snowflake) Compare(ctx context.Context, conf *conf.ComparisonsConf) ([]metrics.Comparison, error) {
 	return nil, fmt.Errorf("not supported")
 }
 

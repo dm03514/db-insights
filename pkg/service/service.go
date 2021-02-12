@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/dm03514/db-insights/pkg/conf"
 	"github.com/dm03514/db-insights/pkg/metrics"
@@ -13,9 +14,11 @@ import (
 )
 
 type DB interface {
-	TableAccesses(ctx context.Context, conf *conf.LastUpdateConf) ([]metrics.TableAccess, error)
-	Freshness(ctx context.Context, conf *conf.FreshnessConf) ([]metrics.TableFreshness, error)
+	metrics.Freshnesser
+	metrics.Accessor
+
 	Close() error
+	SQLDB() *sql.DB
 }
 
 type Conf struct {
@@ -31,6 +34,22 @@ type Service struct {
 func (s *Service) Close() error {
 	s.Conf.Metrics.Flush()
 	return s.Conf.DB.Close()
+}
+
+func (s *Service) CheckComparisons() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	f, err := metrics.NewCompareChecker(
+		s.Conf.Metrics,
+		s.StaticConf,
+		s.Conf.DB.SQLDB(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return f.Run(ctx)
 }
 
 func (s *Service) CheckFreshness() error {
