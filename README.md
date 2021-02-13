@@ -7,6 +7,7 @@ DB insights is a single deployable binary that you configure to point at 1 or mo
 |           | Snowflake          | Redshift |
 |-----------|--------------------|----------|
 | Freshness | :white_check_mark: | :x:      |
+| Comparisons | :white_check_mark: - Primary | :white_check_mark: - Secondary     |
 |           |                    |          |
 
 
