@@ -10,5 +10,6 @@ require (
 	github.com/snowflakedb/gosnowflake v1.4.0
 	github.com/stretchr/testify v1.2.2
 	github.com/urfave/cli/v2 v2.3.0
+	google.golang.org/appengine v1.6.7
 	gopkg.in/yaml.v2 v2.2.3
 )

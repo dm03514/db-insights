@@ -50,6 +50,7 @@ func TestComparisonResult_TargetName(t *testing.T) {
 	cr := ComparisonResult{
 		Name: "hi",
 		First: Result{
+			Key:  "hi",
 			DB:   "first_db",
 			Name: "first_target",
 		},
@@ -59,7 +60,7 @@ func TestComparisonResult_TargetName(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, "first_db_first_target_second_db_second_target", cr.TargetName())
+	assert.Equal(t, "hi_first_db_first_target_second_db_second_target", cr.TargetName())
 }
 
 func TestComparisonResult_RatioFirstToSecond(t *testing.T) {

@@ -27,8 +27,13 @@ type ComparisonResult struct {
 	Second Result
 }
 
+func (cr ComparisonResult) Key() string {
+	return cr.First.Key
+}
+
 func (cr ComparisonResult) TargetName() string {
-	return fmt.Sprintf("%s_%s_%s_%s",
+	return fmt.Sprintf("%s_%s_%s_%s_%s",
+		cr.Key(),
 		cr.First.DB,
 		cr.First.Name,
 		cr.Second.DB,
@@ -111,7 +116,7 @@ func (cc *CompareChecker) ExecuteComp(ctx context.Context, comp conf.ComparisonS
 
 	for rows.Next() {
 		r := Result{
-			DB: comp.DB,
+			DB:   comp.DB,
 			Name: comp.Name,
 		}
 		if err := rows.Scan(&r.Key, &r.Rows); err != nil {
@@ -129,6 +134,7 @@ func (cc *CompareChecker) Emit(cr ComparisonResult) error {
 		"dbinsights.comparisons.ratio, value: %f, tags: %+v",
 		cr.RatioFirstToSecond(),
 		[]string{
+			fmt.Sprintf("key:%s", cr.Key()),
 			fmt.Sprintf("comp_name:%s", cr.Name),
 			fmt.Sprintf("target_name:%s", cr.TargetName()),
 		},
@@ -138,6 +144,7 @@ func (cc *CompareChecker) Emit(cr ComparisonResult) error {
 		"dbinsights.comparisons.ratio",
 		cr.RatioFirstToSecond(),
 		[]string{
+			fmt.Sprintf("key:%s", cr.Key()),
 			fmt.Sprintf("comp_name:%s", cr.Name),
 			fmt.Sprintf("target_name:%s", cr.TargetName()),
 		},
@@ -148,6 +155,7 @@ func (cc *CompareChecker) Emit(cr ComparisonResult) error {
 		"dbinsights.comparisons.single_target, value: %f, tags: %+v",
 		float64(cr.First.Rows),
 		[]string{
+			fmt.Sprintf("key:%s", cr.Key()),
 			fmt.Sprintf("comp_name:%s", cr.Name),
 			fmt.Sprintf("db:%s", cr.First.DB),
 			fmt.Sprintf("name:%s", cr.First.Name),
@@ -159,6 +167,7 @@ func (cc *CompareChecker) Emit(cr ComparisonResult) error {
 		"dbinsights.comparisons.single_target",
 		float64(cr.First.Rows),
 		[]string{
+			fmt.Sprintf("key:%s", cr.Key()),
 			fmt.Sprintf("comp_name:%s", cr.Name),
 			fmt.Sprintf("db:%s", cr.First.DB),
 			fmt.Sprintf("name:%s", cr.First.Name),
@@ -170,6 +179,7 @@ func (cc *CompareChecker) Emit(cr ComparisonResult) error {
 		"dbinsights.comparisons.single_target, value: %f, tags: %+v",
 		float64(cr.Second.Rows),
 		[]string{
+			fmt.Sprintf("key:%s", cr.Key()),
 			fmt.Sprintf("comp_name:%s", cr.Name),
 			fmt.Sprintf("db:%s", cr.Second.DB),
 			fmt.Sprintf("name:%s", cr.Second.Name),
@@ -181,6 +191,7 @@ func (cc *CompareChecker) Emit(cr ComparisonResult) error {
 		"dbinsights.comparisons.single_target",
 		float64(cr.Second.Rows),
 		[]string{
+			fmt.Sprintf("key:%s", cr.Key()),
 			fmt.Sprintf("comp_name:%s", cr.Name),
 			fmt.Sprintf("db:%s", cr.Second.DB),
 			fmt.Sprintf("name:%s", cr.Second.Name),
