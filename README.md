@@ -40,3 +40,14 @@ export DB_INSIGHTS_CONN_STRING="user:pw@ACCOUNT.REGION/DB/?role=ROLE&warehouse=W
 # invoke the check
 $ go run cmd/dbinsigts/main.go --conf=path/to/your/config.yml check freshness
 ```
+
+## Comparison 
+
+Comparisons query 2 different databases and emits metrics about the results of the query. Comparison queries must return
+
+(string, int). All strings must be the same keys.
+
+### Conf
+
+
+### Execution
