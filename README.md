@@ -4,11 +4,11 @@ DB Insights is a tool kit for validating data. It contains premade checks for im
 DB insights is a single deployable binary that you configure to point at 1 or more databases. Currently it supports the following checks for the following databases:
 
 
-|           | Snowflake          | Redshift |
-|-----------|--------------------|----------|
-| Freshness | :white_check_mark: | :x:      |
-| Comparisons | :white_check_mark: - Primary | :white_check_mark: - Secondary     |
-|           |                    |          |
+|           | Snowflake          | Redshift | Postgres |
+|-----------|--------------------|----------| ---- |
+| Freshness | :white_check_mark: | :x:      | :white_check_mark: |
+| Comparisons | :white_check_mark: - Primary | :white_check_mark: - Secondary     | :x: |
+|           |                    |          | |
 
 
 # Checks
