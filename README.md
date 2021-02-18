@@ -20,15 +20,14 @@ Freshness checks the time of the most recent record within a table.
 ### Conf
 
 ```
-# path/to/your/config.yml
+# examples/freshness.yml
 
 freshness:
   targets:
-    - database: yourdb 
-      schema: yourschema 
-      table: yourtable 
-      column: yourcolumn 
-
+    - database: test
+      schema: public
+      table: test
+      column: created_at
 ```
 
 ### Execution
