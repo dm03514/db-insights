@@ -33,13 +33,48 @@ freshness:
 
 ### Execution
 
+- Start postgres locally using docker
 ```
-# export your connection string
-export DB_INSIGHTS_CONN_STRING="user:pw@ACCOUNT.REGION/DB/?role=ROLE&warehouse=WAREHOUSE"
+$ docker-compose up -d
+```
 
-# invoke the check
-$ go run cmd/dbinsigts/main.go --conf=path/to/your/config.yml check freshness
+- Verify that the tset table was created
 ```
+$ psql -h localhost -U test
+Password for user test:
+psql (12.4)
+Type "help" for help.
+
+test=#
+test=# \dt
+       List of relations
+ Schema | Name | Type  | Owner
+--------+------+-------+-------
+ public | test | table | test
+(1 row)
+
+test=# select * from test;
+         created_at
+----------------------------
+ 2021-02-18 19:32:00.519778
+(1 row)
+```
+
+- export your connection string
+```
+$ export DB_INSIGHTS_CONN_STRING="dbname=test user=test password=test host=localhost sslmode=disable"
+```
+
+- invoke the check
+```
+$ go run cmd/dbinsights/main.go -conf=examples/freshness.yml -db=postgres check freshness
+hi
+DEBU[0000] Freshness Conf: {Targets:[{Database:test Schema:public Table:test Column:created_at}]}
+DEBU[0000] postgres.Freshness: executed: "SELECT max(created_at) FROM test.public.test"
+DEBU[0000] EmitAll: [{test public test 2021-02-18 19:51:11.490488 +0000 +0000 created_at}]
+DEBU[0000] freshness table: test.public.test, total_seconds: 2m43.758708s
+```
+
 
 ## Comparison 
 

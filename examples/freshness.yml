@@ -1,0 +1,6 @@
+freshness:
+  targets:
+    - database: test
+      schema: public
+      table: test
+      column: created_at
