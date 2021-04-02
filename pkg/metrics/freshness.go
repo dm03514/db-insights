@@ -15,6 +15,7 @@ type TableFreshness struct {
 	Table      string
 	LastRecord time.Time
 	Column     string
+	Tags       []string
 }
 
 type Freshnesser interface {
@@ -33,6 +34,7 @@ func (fc *FreshnessChecker) Emit(tf TableFreshness) (bool, error) {
 		fmt.Sprintf("schema:%s", tf.Schema),
 		fmt.Sprintf("table:%s", tf.Table),
 	}
+	tags = append(tags, tf.Tags...)
 
 	diff := time.Now().UTC().Sub(tf.LastRecord)
 	fc.Metrics.Gauge(

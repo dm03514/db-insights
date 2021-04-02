@@ -29,6 +29,7 @@ type TableFreshnessCheckerConf struct {
 	Schema   string
 	Table    string
 	Column   string
+	Tags     []string
 }
 
 type FreshnessConf struct {

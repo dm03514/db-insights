@@ -43,6 +43,7 @@ func (s *Snowflake) Freshness(ctx context.Context, conf *conf.FreshnessConf) ([]
 			Schema:   t.Schema,
 			Table:    t.Table,
 			Column:   t.Column,
+			Tags:     t.Tags,
 		}
 		row := s.DB.QueryRowContext(ctx, sqlStr)
 		switch err := row.Scan(&tf.LastRecord); err {
